@@ -1,5 +1,7 @@
 # bloom-django
 
+https://ldiatrvy.pythonanywhere.com/
+
 Сайт цветочного магазина Bloom, разработанный на Python с использованием фреймворка Django.
 
 ## О проекте
