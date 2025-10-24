@@ -1,0 +1,15 @@
+{% extends 'main/layout.html' %}
+
+{%block title%}{{ discount.title }}{% endblock %}
+
+{% block content %}
+    <div class="features">
+        <h1>{{ discount.title }}</h1>
+        <p>{{ discount.date }}</p>
+        <div class="container">
+            <p>{{ discount.description|linebreaksbr }}</p>
+        </div>
+        <a href="{% url 'discount_home' %}" class="btn btn-light"><i class="fa-solid fa-arrow-left" style="color: #fff;"></i> Вернуться</a>
+        <button class="btn btn-dark copy-promo" data-promo="{{ discount.promo }}"><i class="fa-regular fa-copy" style="color: #fff;"></i> Скопировать промокод</button>
+    </div>
+{% endblock %}

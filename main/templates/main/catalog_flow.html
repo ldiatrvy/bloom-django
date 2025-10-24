@@ -1,0 +1,86 @@
+{% extends 'main/layout.html' %}
+{% load static %}
+{% load catalog_extras %}
+
+{%block title%}Bloom{% endblock %}
+
+{% block content %}
+<div class="features">
+    <h1>Каталог</h1>
+    <p>Цветы — нежные и хрупкие создания природы. Они радуют глаз яркостью цвета и элегантностью бутонов. Цветы многогранны, и каждый может отыскать для себя тот, который ему нравится — любого размера, вида, цвета.</p>
+    <div class="forms-container">
+        <div class="filter-left">
+            <form method="get" style="display: inline-block;">
+                {% if search_query %}
+                    <input type="hidden" name="q" value="{{ search_query }}">
+                {% endif %}
+                {% if current_sort %}
+                    <input type="hidden" name="sort" value="{{ current_sort }}">
+                {% endif %}
+                <label for="packaging">Тип упаковки:</label>
+                <select name="packaging" id="packaging" class="sort-form" onchange="this.form.submit()">
+                    <option value="all" {% if not request.GET.packaging or request.GET.packaging == 'all' %}selected{% endif %}>Все</option>
+                    <option value="paper" {% if request.GET.packaging == 'paper' %}selected{% endif %}>Бумага</option>
+                    <option value="box" {% if request.GET.packaging == 'box' %}selected{% endif %}>Коробка</option>
+                </select>
+            </form>
+            <form method="get">
+                {% if search_query %}
+                    <input type="hidden" name="q" value="{{ search_query }}">
+                {% endif %}
+                <label for="sort">Цена:</label>
+                <select name="sort" id="sort" class="sort-form" onchange="this.form.submit()">
+                    <option value="default" {% if current_sort == 'default' %}selected{% endif %}>По умолчанию</option>
+                    <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>По возрастанию</option>
+                    <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>По убыванию</option>
+                </select>
+            </form>
+        </div>
+        <div class="filter-right">
+            <form method="get" action="{% url 'catalog_flow' %}">
+                <input type="text" name="q" class="search" placeholder="Поиск..." value="{{ search_query|default:'' }}">
+                <button type="submit" class="btn btn-light">Найти</button>
+            </form>
+        </div>
+    </div>
+        <p class="result_right">Найдено: {{ bouquets|length }}</p>
+    <div class="catalog_container">
+        {% for el in bouquets %}
+        <div class="catalog_cont">
+            <img src="{{ el.image.url }}" alt="...">
+            <a href="{% url 'description' el.id %}" class="catalog-link" target="_blank">
+                <h3 class="catalog_name">{{ el.name }}</h3>
+            </a>
+            
+            <div class="price-cart-container">
+                <p class="catalog_price">{{ el.price }} руб.</p>
+                
+                {% if user.is_authenticated %}
+                {% with quantity=cart_quantities|get_item:el.id %}
+                {% if quantity > 0 %}
+                    <p class="added-to-cart-msg add-to-cart-form">Товар добавлен в корзину</p>
+                {% else %}
+                <form method="post" action="{% url 'cart:cart_add' el.id %}" class="add-to-cart-form" data-product-id="{{ el.id }}">
+                {% csrf_token %}
+                    <button type="submit" class="btn btn-light"><i class="fa-solid fa-cart-plus"></i> Добавить в корзину</button>
+                </form>
+                {% endif %}
+                {% endwith %}
+                {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-light">
+                    <i class="fa-solid fa-cart-plus"></i> Войдите чтобы купить
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script>
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      location.reload();
+    }
+  });
+</script>
+{% endblock %}

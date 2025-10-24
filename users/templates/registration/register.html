@@ -1,0 +1,29 @@
+{% extends 'main/layout.html' %}
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="features">
+    <div class="container">
+        <h1>Регистрация</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {{ field }}
+                {% if field.help_text %}
+                <small class="help-text">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-light">Зарегистрироваться</button>
+        </form>
+        <p class="auth-link">
+            Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'main/layout.html' %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+<div class="features">
+    <h1>Личный кабинет</h1>
+    <div class="container profile-header">
+        <div class="user-avatar">
+            <i class="fa-solid fa-user" style="font-size: 60px; color: #568dc9;"></i>
+        </div>
+        <div>
+            <h2>Добро пожаловать, {{ user.username }}!</h2>
+            <p class="user-email">{{ user.email }}</p>
+            <p class="member-since">Участник программы лояльности с {{ user.date_joined|date:"d.m.Y" }}</p>
+        </div>
+    </div>
+
+    <div>
+        <h3><i class="fa-solid fa-receipt" style="color: #1e5080;"></i> История заказов</h3>
+        {% if orders %}
+        {% for order in orders %}
+        <div class="container">
+            <h4>Номер заказа #{{ order.id }}</h4>
+            <span class="history">Дата оформления: </span><span>{{ order.created_at|date:"d.m.Y" }}</span><br>
+            <span class="history">Статус: </span><span class="status-{{ order.status }}">{{ order.get_status_display }}</span><br>
+
+            <span class="history">Состав:</span><br>
+            <ul>
+                {% for item in order.items.all %}
+                <li><a href="{% url 'description' item.bouquet.id %}">{{ item.bouquet.name }}</a> — {{ item.quantity }} шт.</li>
+                {% empty %}
+                <li>Состав пуст</li>
+                {% endfor %}
+            </ul>
+            <span class="history">Адрес: </span><span>{{ order.delivery_address }}</span><br>
+            <span class="history">Номер телефона получателя: </span><span>{{ order.phone_number }}</span><br>
+            <span class="history">Комментарий к заказу: </span><span>{{ order.comment }}</span><br>
+            <span class="history">К оплате: </span><span>{{ order.total_price|floatformat:0 }}₽</span><br>
+        </div>
+
+        {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-basket-shopping" style="font-size: 40px; color: #568dc9; margin-bottom: 15px;"></i>
+                <p>У вас пока нет заказов</p>
+                <a href="{% url 'catalog_flow' %}" class="btn btn-light">Сделать первый заказ</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="container">
+            <h3><i class="fa-solid fa-gear" style="color: #1e5080;"></i> Настройки профиля</h3>
+            <div class="settings-actions">
+                <a href="{% url 'change_password' %}" class="settings-btn">
+                    <i class="fa-solid fa-lock"></i> Сменить пароль
+                </a>
+
+            </div>
+        </div>
+        <div class="profile-actions">
+            <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="fa-solid fa-right-from-bracket"></i> Выйти из аккаунта</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'main/layout.html' %}
+
+{%block title%}Акции{% endblock %}
+
+{% block content %}
+    <div class="features">
+        <h1>Акции</h1>
+        {% if discount %}
+            {% for el in discount %}
+                <div class="container">
+                    <h3>{{el.title}}</h3>
+                    <p>{{el.anons}}</p>
+                    <a href="{% url 'discount-detail' el.id %}" class="btn btn-light">Условия акции</a>
+                    <button class="btn btn-dark copy-promo" data-promo="{{ el.promo }}"><i class="fa-regular fa-copy" style="color: #fff;"></i> Скопировать промокод</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>В настоящее время нет акций.</p>
+        {% endif %}
+    </div>
+{% endblock %}

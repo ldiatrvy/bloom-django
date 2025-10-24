@@ -1,0 +1,169 @@
+{% extends 'main/layout.html' %}
+{% load cart_extras %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<div class="features">
+    <h1><i class="fa-solid fa-basket-shopping" style="color: #568dc9;"></i> Корзина</h1>
+    {% if cart.items.all %}
+    {% for item in cart.items.all %}
+    <div class="container cart_container">
+        <img src="{{ item.bouquet.image.url }}" alt="{{ item.bouquet.name }}">
+        <div class="right-side">
+            <a href="{% url 'description' item.bouquet.id %}" class="catalog-link" target="_blank">
+                    <h3 class="catalog_name">{{ item.bouquet.name }}</h3>
+            </a>
+            <p>{{ item.bouquet.description|truncatewords:20 }}</p>
+            <div class="bottom-area">
+                <form method="post" action="{% url 'cart:cart_decrease' item.bouquet.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-plus-minus">-</button>
+                </form>
+                {{ item.quantity }}
+                <form method="post" action="{% url 'cart:cart_add' item.bouquet.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-plus-minus">+</button>
+                </form>
+                <strong>{{ item.total_price }} ₽</strong>
+                <form method="post" action="{% url 'cart:cart_remove' item.bouquet.id %}">
+                    {% csrf_token %}
+                    <button type="button" class="cart_btn_del" data-bs-toggle="modal" data-bs-target="#deleteProductModal{{ item.bouquet.id }}">
+                    <i class="fa-solid fa-trash" style="color: #666"></i>
+                    </button>
+                <div class="modal fade" id="deleteProductModal{{ item.bouquet.id }}" tabindex="-1" aria-labelledby="deleteProductModalLabel{{ item.bouquet.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteProductModalLabel{{ item.bouquet.id }}">Подтвердите удаление</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                            </div>
+                            <div class="modal-body">
+                                Уверены, что хотите удалить "{{ item.bouquet.name }}" из корзины?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Отмена</button>
+                                <!-- Форма для УДАЛЕНИЯ товара -->
+                                <form method="post" action="{% url 'cart:cart_remove' item.bouquet.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-dark">Удалить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}    
+    <button type="button" class="settings-btn btn_dell_all" data-bs-toggle="modal" data-bs-target="#cleanCartModal"><i class="fa-solid fa-trash"></i> Очистить корзину</button>  
+    <div class="container">
+        <h3>Итого</h3>
+        <div class="summary-row">
+            <span>Товары ({{ cart.total_items }}):</span>
+            <span>{{ cart.total_price|floatformat:0 }} ₽</span>
+        </div>
+        <div class="summary-row">
+            <span>Доставка:</span>
+            <span>
+                {% if cart.total_price >= 3000 %}
+                <span style="color: green;">Бесплатно</span>
+                {% else %}
+                300 ₽
+                {% endif %}
+            </span>
+        </div>
+        <form method="post" action="{% url 'cart:apply_discount' %}">
+            {% csrf_token %}
+            <input type="text" id="promo_code" class="search" name="promo_code" placeholder="Введите промокод" maxlength="10" value="{{ promo_code }}">
+            <button type="submit" class="btn btn-light">Применить</button>
+        </form>
+
+        {% if discount_error %}
+            <div class="alert alert-danger">{{ discount_error }}</div>
+        {% endif %}
+
+        {% if discount_amount > 0 %}
+            <div class="summary-row">
+                <span>Скидка:</span>
+                <span>{{ discount_amount|floatformat:0 }} ₽ ({{ discount_percent|floatformat:0 }}%)</span>
+            </div>
+        {% endif %}
+        <div class="summary-row total">
+            <strong>К оплате:</strong>
+            <strong>
+                {% if total_price_with_discount >= 3000 %}
+                {{ total_price_with_discount }} ₽
+                {% else %}
+                {{ total_price_with_discount|add:300 }} ₽
+                {% endif %}
+            </strong>
+        </div>
+        
+        {% if total_price_with_discount < 3000 %}
+        <div class="delivery-notice">
+            Бесплатная доставка от 3000 ₽
+            <br><small>Добавьте товаров еще на {{ total_price_with_discount|delivery_remaining }} ₽</small>
+        </div>
+        {% endif %}
+    </div>
+    <div class="container">
+          <h1>Оформление заказа</h1>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small class="help-text">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div class="error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-light">Оформить заказ</button>
+            </form>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <h2>Ваша корзина пуста</h2>
+        <p>Добавьте букеты, чтобы сделать заказ</p>
+        <a href="{% url 'catalog_flow' %}" class="btn btn-light">Перейти к каталогу</a>
+    </div>
+{% endif %}
+</div>
+
+<div class="modal fade" id="cleanCartModal" tabindex="-1" aria-labelledby="cleanCartLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cleanCartLabel">Подтвердите удаление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                Уверены, что хотите очистить корзину?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Отмена</button>
+                <form method="post" action="{% url 'cart:cart_clear'%}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-dark">Очистить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+  form[action="{% url 'cart:apply_discount' %}"] {
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+  }
+  .summary-row {
+    margin-bottom: 5px !important;
+  }
+</style>
+
+{% endblock %}
